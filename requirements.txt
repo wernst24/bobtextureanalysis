@@ -22,10 +22,6 @@ click==8.1.7
 colorama==0.4.6
 comet-ml==3.47.1
 comm==0.2.1
-conda==24.7.1
-conda-libmamba-solver==24.1.0
-conda-package-handling==2.4.0
-conda_package_streaming==0.11.0
 configobj==5.0.9
 contourpy==1.2.0
 cycler==0.11.0
@@ -166,7 +162,6 @@ ruamel.yaml.clib==0.2.8
 scikit-image==0.24.0
 scikit-learn==1.5.1
 scipy==1.10.1
-seaborn==0.13.2
 semantic-version==2.10.0
 Send2Trash==1.8.2
 sentry-sdk==2.17.0
