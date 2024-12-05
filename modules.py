@@ -20,7 +20,7 @@ def compute_structure_tensor(image, chunk_size=5, sigma=2):
     grad_x = cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3)
     grad_y = cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
     
-    height, width = image.shape
+    height, width = image.shape[:2]
     tensor_list = []
     gaussian_kernel = generate_gaussian_kernel(chunk_size, sigma)
     
@@ -42,7 +42,7 @@ def calculate_orientation(tensor):
     dominant_orientation = np.arctan2(eigvecs[1, 1], eigvecs[0, 1])  # Angle of the largest eigenvector
     return np.degrees(dominant_orientation)
 
-def orient_hsv(image, tensor_list, chunk_size=5, mode="all", verbose=False):
+def orient_hsv(image, tensor_list, chunk_size=5, mode="all"):
     assert len(image.shape) == 2, "Image should be 2d grayscale"
     # Initialize the HSV image
     height, width = image.shape
@@ -53,16 +53,11 @@ def orient_hsv(image, tensor_list, chunk_size=5, mode="all", verbose=False):
     normalized_image = image
     
     # normalized_image = image/np.max(image)
-
-    orientation_list = []
-    coherence_list = []
     
     for (x, y), tensor in tensor_list:
         # Calculate orientation
         orientation = calculate_orientation(tensor)
 
-        if verbose:
-            orientation_list.append(orientation)
         hue = (orientation % 180) / 180.0  # Normalize angle to [0, 1] for hue
         
         # indices for slicing for chunk
@@ -72,8 +67,6 @@ def orient_hsv(image, tensor_list, chunk_size=5, mode="all", verbose=False):
         # How aligned the vectors are
         local_coherence = calculate_coherence(tensor)
 
-        if verbose:
-            coherence_list.append(local_coherence)
         assert local_coherence < 1, "Coherence greater than 1"
         # print(local_coherence)
 
@@ -101,7 +94,7 @@ def orient_hsv(image, tensor_list, chunk_size=5, mode="all", verbose=False):
 
     
     rgb_image = cv.cvtColor((hsv_image * 255).astype(np.uint8), cv.COLOR_HSV2RGB)
-    return rgb_image if not verbose else rgb_image, orientation_list, coherence_list
+    return rgb_image
 
 def calculate_coherence(tensor):
     # Eigenvalue-based coherence
