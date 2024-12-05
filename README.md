@@ -1,1 +1,2 @@
 # bobtextureanalysis
+This is a web app for analyzing the fiber structure of images, intended to be used with drumheads. In order to use the application, go to bobtextureanalysis.streamlit.app. Currently, the app is very inefficient and not well designed, so please keep file submissions small. After uploading an image, click "Analyze", and four images should appear in the right column: the original, HSV encoded orientation & coherence, coherence, and orientation.
