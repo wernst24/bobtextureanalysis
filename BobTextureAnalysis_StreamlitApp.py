@@ -41,8 +41,11 @@ with col1:
 with col2:
     if st.session_state.opencv_image is not None:
         raw_image = color.rgb2gray(st.session_state.opencv_image)
+        chunk_size = 5
 
-        cropped = np.ones(raw_image.shape) - raw_image
+        cropped_i = np.ones(raw_image.shape) - raw_image
+
+        cropped = cropped_i[:cropped_i.shape[0] // chunk_size * chunk_size, :cropped_i.shape[1] // chunk_size * chunk_size]
 
         structure_tensor_list = compute_structure_tensor(cropped, chunk_size=5)
 
