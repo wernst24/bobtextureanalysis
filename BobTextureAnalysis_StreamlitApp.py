@@ -26,6 +26,8 @@ with col1:
         msg = "Upload a 2D image to be analyzed. Works best with images smaller than 600x600 pixels."
         uploaded_file = st.file_uploader(msg, type=["tif", "tiff", "png", "jpg", "jpeg"], accept_multiple_files=False, label_visibility='collapsed')
             
+        chunk_size = st.slider("Chunk size", min_value=2, max_value=20, step=1)
+
         if "opencv_image" not in st.session_state:
             st.session_state.opencv_image = None
         
@@ -36,10 +38,17 @@ with col1:
             st.session_state.opencv_image = opencv_image
             st.write("Image uploaded successfully!")
 
+        if "chunk_size" not in st.session_state:
+            st.session_state.chunk_size = None
+        
+        if chunk_size:
+            st.session_state.chunk_size = chunk_size
+
         st.form_submit_button(label="Analyze image")
 
 with col2:
     if st.session_state.opencv_image is not None:
+        chunk_size = st.session_state.chunk_size
         raw_image = color.rgb2gray(st.session_state.opencv_image)
         chunk_size = 5
 
