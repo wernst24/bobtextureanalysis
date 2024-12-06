@@ -106,9 +106,13 @@ def calculate_coherence(tensor):
 
 # TODO: fundamentally change coherence and orientation calculations: instead of breaking into
 # chunks, and then getting chunk-wide values, use this process:
-# 1. calculate x and y gradient with sobel image-wide
-# 2. convolve 2-channel (sobelx, sobely) to 3-channel (gaussian - weighted Jxx, Jxy, Jyy) image-wide
+# 1. calculate x and y gradient with gradient filter - add menu to choose type of computation and sigma (if applicable)
+# 2. convolve 2-channel (I_x, I_y) to 3-channel (gaussian - weighted Jxx, Jxy, Jyy) image-wide, and add choice for sigma
 # 3. black magic from wikipedia
 # S_w(p) = [[mu_20, mu_11], [mu_11, mu_02]]
 # k20 = mu20 - mu02 + 2i*mu11 = (lambda1 - lambda2)exp(2i*phi)
 # k11 = mu20 + mu02 = lambda1 + lambda2 (trace of matrix = sum of eigenvectors)
+# from this, |k20|/k11 = coherence, and atan2(im(k20), re(k20)) = orientation
+#
+# 2 important hyperparameters: inner scale and outer scale
+# The inner scale determines the frequency range over which the orientation is estimated, and is the 
