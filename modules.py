@@ -98,9 +98,17 @@ def orient_hsv(image, tensor_list, chunk_size=5, mode="all"):
 
 def calculate_coherence(tensor):
     # Eigenvalue-based coherence
-    # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     eigvals, _ = np.linalg.eigh(tensor)
     lambda1, lambda2 = eigvals  # Sorted eigenvalues (smallest first)
     return np.abs((lambda1 - lambda2) / (lambda1 + lambda2 + 1e-5))
     # np.abs((lambda1 - lambda2) / (lambda1 + lambda2 + 1e-5))
     # return coherence # shouldnt coherence always be positive
+
+# TODO: fundamentally change coherence and orientation calculations: instead of breaking into
+# chunks, and then getting chunk-wide values, use this process:
+# 1. calculate x and y gradient with sobel image-wide
+# 2. convolve 2-channel (sobelx, sobely) to 3-channel (gaussian - weighted Jxx, Jxy, Jyy) image-wide
+# 3. black magic from wikipedia
+# S_w(p) = [[mu_20, mu_11], [mu_11, mu_02]]
+# k20 = mu20 - mu02 + 2i*mu11 = (lambda1 - lambda2)exp(2i*phi)
+# k11 = mu20 + mu02 = lambda1 + lambda2 (trace of matrix = sum of eigenvectors)
