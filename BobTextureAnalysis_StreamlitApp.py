@@ -53,8 +53,8 @@ with col1:
         if "invert_image" not in st.session_state:
             st.session_state.invert_image = None
         
-        if invert:
-            st.session_state.invert_image = invert
+        
+        st.session_state.invert_image = invert
 
         st.form_submit_button(label="Analyze image")
 
