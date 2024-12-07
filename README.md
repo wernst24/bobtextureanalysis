@@ -6,6 +6,7 @@ This is a web app for analyzing the fiber structure of images, intended to be us
 
 2. calculate structure tensor from x and y gradient
 (J = [[I_x ** 2, I_x * I_y], [I_x * I_y, I_y ** I_y]] = [[mu_20, mu_11], [mu_11, mu_02]])
+$$ m $$
 
 3. calculate k20 and k11, which fully describe structure tensor
 k20 = mu20 - mu02 + 2i*mu11 = (lambda1 - lambda2)exp(2i*phi)
