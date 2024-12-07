@@ -57,7 +57,7 @@ with col2:
 
         cropped = cropped_i[:cropped_i.shape[0] // chunk_size * chunk_size, :cropped_i.shape[1] // chunk_size * chunk_size]
         
-        coherence, two_phi = coh_ang_calc(cropped, sigma_outer=1, sigma_inner=1, epsilon=1e-6)
+        coherence, two_phi = coh_ang_calc(cropped)
 
         all_img = orient_hsv(cropped, coherence, two_phi, mode='all')
         coh_img = orient_hsv(cropped, coherence, two_phi, mode='coherence')
