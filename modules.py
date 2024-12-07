@@ -3,8 +3,12 @@ import cv2 as cv
 import numpy as np
 from skimage import color
 from skimage.filters import gaussian
+from skimage.transform import downscale_local_mean
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
+
+def downscale_image(image, block_size):
+    return downscale_local_mean(image, (block_size, block_size))
 
 def generate_gaussian_kernel(chunk_size, sigma):
     """
@@ -153,4 +157,4 @@ def calculate_coherence(tensor):
 # from this, |k20|/k11 = coherence, and atan2(im(k20), re(k20)) = orientation
 #
 # 2 important hyperparameters: inner scale and outer scale
-# The inner scale determines the frequency range over which the orientation is estimated, and is the 
+# The inner scale determines the frequency range over which the orientation is estimated, sigma of gaussian blur 
