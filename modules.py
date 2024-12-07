@@ -3,7 +3,6 @@ import cv2 as cv
 import numpy as np
 from skimage import color
 from skimage.filters import gaussian
-from skimage.transform import downscale_local_mean
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 # from scipy.ndimage import convolve
@@ -12,46 +11,6 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 """
 For skimage.filters.gaussian(), truncate at (pixels away from center)/sigma
 """
-
-def downscale_image(image, block_size):
-    return downscale_local_mean(image, (block_size, block_size))
-
-def generate_gaussian_kernel(chunk_size, sigma):
-    """
-    Create a 2D Gaussian kernel.
-    """
-    x = np.arange(-chunk_size // 2 + 1, chunk_size // 2 + 1)
-    y = np.arange(-chunk_size // 2 + 1, chunk_size // 2 + 1)
-    x, y = np.meshgrid(x, y)
-    kernel = np.exp(-(x**2 + y**2) / (2 * sigma**2))
-    return kernel / kernel.sum()
-
-def compute_structure_tensor(image, chunk_size=5, sigma=2):
-    grad_x = cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3)
-    grad_y = cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
-    
-    height, width = image.shape[:2]
-    tensor_list = []
-    gaussian_kernel = generate_gaussian_kernel(chunk_size, sigma)
-    
-    for y in range(0, height, chunk_size):
-        for x in range(0, width, chunk_size):
-            chunk_grad_x = grad_x[y:y + chunk_size, x:x + chunk_size]
-            chunk_grad_y = grad_y[y:y + chunk_size, x:x + chunk_size]
-            
-            J_xx = np.sum(chunk_grad_x ** 2 * gaussian_kernel)
-            J_yy = np.sum(chunk_grad_y ** 2 * gaussian_kernel)
-            J_xy = np.sum(chunk_grad_x * chunk_grad_y * gaussian_kernel)
-            
-            tensor_list.append(((x, y), np.array([[J_xx, J_xy], [J_xy, J_yy]])))
-    return tensor_list
-
-def calculate_orientation(tensor):
-    # lowkey just like self-explanitory lock in
-    _, eigvecs = np.linalg.eigh(tensor)  # Eigenvectors
-    dominant_orientation = np.arctan2(eigvecs[1, 1], eigvecs[0, 1])  # Angle of the largest eigenvector
-    return np.degrees(dominant_orientation)
-
 
 def sobel(image):
     return cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3), cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
