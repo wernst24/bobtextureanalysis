@@ -16,6 +16,16 @@ sys.tracebacklimit = 0
 
 from modules import *
 
+# """
+# TODO:
+# 0. decompose coherence and angle calculation
+# 1. cache intermediate data to reduce memory cost, and intelligently update when options updated
+# 2. add options for gradient calculation, to get rid of sobel artifacts (yuck)
+# """
+
+
+
+
 col1, col2 = st.columns(2)
 
 with col1:
@@ -73,7 +83,7 @@ with col2:
         if st.session_state.invert_image:
             raw_image_gray = 1 - raw_image_gray
         
-        coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma)
+        coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma, gradient_calc=sobel)
 
         all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all')
         coh_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='coherence')

@@ -5,15 +5,12 @@ from skimage import color
 from skimage.filters import gaussian
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
-# from scipy.ndimage import convolve
-# from scipy.signal import gaussian
-
-"""
-For skimage.filters.gaussian(), truncate at (pixels away from center)/sigma
-"""
 
 def sobel(image):
     return cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3), cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
+
+def scharr(image):
+    return cv.Scharr(image, cv.CV_64F, 1, 0), cv.Scharr(image, cv.CV_64F, 0, 1)
 
 def coh_ang_calc(image, gradient_calc=sobel, sigma_inner=2, epsilon=1e-6, kernel_radius=3):
     # image: 2d grayscale image, perchance already mean downscaled a bit
@@ -45,11 +42,19 @@ def coh_ang_calc(image, gradient_calc=sobel, sigma_inner=2, epsilon=1e-6, kernel
     # return coherence (|k_20|/k_11), orientation (angle of k_20)
     return (k_20_re ** 2 + k_20_im ** 2) / (k_11 + epsilon) ** 2, np.arctan2(k_20_im, k_20_re)
 
+
+
+
+
+
+
+# calculate images for display only
+
 def orient_hsv(image, coherence_image, angle_img, mode="all"):
 
     hsv_image = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.float32)
-    # print(np.max(angle_img), np.median(angle_img), np.min(angle_img))
-    hue_img = (angle_img + np.pi) / (np.pi * 2)
+    hue_img = (angle_img + np.pi) / (np.pi * 3) # i dont know why this uses 3pi but it looks good
+    # print(np.max(hue_img), np.median(hue_img), np.min(hue_img))
 
     if mode == 'all':
         hsv_image[:, :, 0] = hue_img  # Hue: Orientation
