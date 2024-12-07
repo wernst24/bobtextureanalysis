@@ -6,6 +6,12 @@ from skimage.filters import gaussian
 from skimage.transform import downscale_local_mean
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
+# from scipy.ndimage import convolve
+# from scipy.signal import gaussian
+
+"""
+For skimage.filters.gaussian(), truncate at (pixels away from center)/sigma
+"""
 
 def downscale_image(image, block_size):
     return downscale_local_mean(image, (block_size, block_size))
