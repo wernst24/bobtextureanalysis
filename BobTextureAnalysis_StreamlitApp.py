@@ -57,10 +57,13 @@ with col2:
         cropped = cropped_i[:cropped_i.shape[0] // chunk_size * chunk_size, :cropped_i.shape[1] // chunk_size * chunk_size]
 
         structure_tensor_list = compute_structure_tensor(cropped, chunk_size=5)
+        
+        coherence, two_phi = coh_ang_calc(cropped, sigma_outer=1, sigma_inner=1, epsilon=1e-6)
 
-        all_img = orient_hsv(cropped, structure_tensor_list, chunk_size=5, mode='all')
-        coh_img = orient_hsv(cropped, structure_tensor_list, chunk_size=5, mode='coherence')
-        ang_img = orient_hsv(cropped, structure_tensor_list, chunk_size=5, mode='angle')
+        all_img = orient_hsv(cropped, coherence, two_phi, mode='all')
+        coh_img = orient_hsv(cropped, coherence, two_phi, mode='coherence')
+        ang_img = orient_hsv(cropped, coherence, two_phi, mode='angle')
+        # orient_hsv(cropped, structure_tensor_list, chunk_size=5, mode='angle')
 
 
 

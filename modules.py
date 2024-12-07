@@ -42,15 +42,16 @@ def calculate_orientation(tensor):
     dominant_orientation = np.arctan2(eigvecs[1, 1], eigvecs[0, 1])  # Angle of the largest eigenvector
     return np.degrees(dominant_orientation)
 
-def orient_hsv(image, tensor_list, chunk_size=5, mode="all"):
+def coh_ang_calc(image, sigma_outer=1, sigma_inner=2, epsilon=1e-6):
+    chunk_size = 5
     assert len(image.shape) == 2, "Image should be 2d grayscale"
     # Initialize the HSV image
-    height, width = image.shape
-    hsv_image = np.zeros((height, width, 3), dtype=np.float32)
+    coherence_img = np.zeros_like(image, dtype=np.float32)
+    angle_img = np.zeros_like(image, dtype=np.float32)
     
     # Normalize image for intensity (0 to 1)
 
-    normalized_image = image
+    tensor_list = compute_structure_tensor(image, chunk_size=5, sigma=2)
     
     # normalized_image = image/np.max(image)
     
@@ -70,21 +71,58 @@ def orient_hsv(image, tensor_list, chunk_size=5, mode="all"):
         assert local_coherence < 1, "Coherence greater than 1"
         # print(local_coherence)
 
-        if mode == 'all':
-            hsv_image[chunk_y, chunk_x, 0] = hue  # Hue: Orientation
-            hsv_image[chunk_y, chunk_x, 1] = local_coherence # Saturation: Coherence
-            hsv_image[chunk_y, chunk_x, 2] = normalized_image[chunk_y, chunk_x]  # Value: Intensity
+        angle_img[chunk_y, chunk_x] = orientation
+        coherence_img[chunk_y, chunk_x] = local_coherence # Saturation: Coherence
+
+    return coherence_img, angle_img
+
+def compute_structure_tensor(image, chunk_size=5, sigma=2):
+    grad_x = cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3)
+    grad_y = cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
+    
+    height, width = image.shape[:2]
+    tensor_list = []
+    gaussian_kernel = generate_gaussian_kernel(chunk_size, sigma)
+    
+    for y in range(0, height, chunk_size):
+        for x in range(0, width, chunk_size):
+            chunk_grad_x = grad_x[y:y + chunk_size, x:x + chunk_size]
+            chunk_grad_y = grad_y[y:y + chunk_size, x:x + chunk_size]
             
-        elif mode == 'coherence':
-            hsv_image[chunk_y, chunk_x, 0] = 0
-            hsv_image[chunk_y, chunk_x, 1] = 0
-            hsv_image[chunk_y, chunk_x, 2] = local_coherence # * np.mean(normalized_image[chunk_y, chunk_x])
-        elif mode == 'angle':
-            hsv_image[chunk_y, chunk_x, 0] = hue  # Hue: Orientation
-            hsv_image[chunk_y, chunk_x, 1] = 1
-            hsv_image[chunk_y, chunk_x, 2] = 1
-        else:
-            assert False, "Invalid mode"
+            J_xx = np.sum(chunk_grad_x ** 2 * gaussian_kernel)
+            J_yy = np.sum(chunk_grad_y ** 2 * gaussian_kernel)
+            J_xy = np.sum(chunk_grad_x * chunk_grad_y * gaussian_kernel)
+            
+            tensor_list.append(((x, y), np.array([[J_xx, J_xy], [J_xy, J_yy]])))
+    return tensor_list
+
+def calculate_orientation(tensor):
+    # lowkey just like self-explanitory lock in
+    _, eigvecs = np.linalg.eigh(tensor)  # Eigenvectors
+    dominant_orientation = np.arctan2(eigvecs[1, 1], eigvecs[0, 1])  # Angle of the largest eigenvector
+    return np.degrees(dominant_orientation)
+
+def orient_hsv(image, coherence_image, angle_img, mode="all"):
+
+    hsv_image = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.float32)
+    
+    hue_img = (angle_img % 180) / 180.0
+
+    if mode == 'all':
+        hsv_image[:, :, 0] = hue_img  # Hue: Orientation
+        hsv_image[:, :, 1] = coherence_image # Saturation: Coherence
+        hsv_image[:, :, 2] = image  # Value: Intensity
+        
+    elif mode == 'coherence':
+        hsv_image[:, :, 0] = 0
+        hsv_image[:, :, 1] = 0
+        hsv_image[:, :, 2] = coherence_image # * np.mean(normalized_image[chunk_y, chunk_x])
+    elif mode == 'angle':
+        hsv_image[:, :, 0] = hue_img  # Hue: Orientation
+        hsv_image[:, :, 1] = 1
+        hsv_image[:, :, 2] = 1
+    else:
+        assert False, "Invalid mode"
     
     # Gaussian blur so it looks nice
     hsv_image[:, :, 0] = gaussian(hsv_image[:, :, 0], sigma=3)
