@@ -90,7 +90,7 @@ def calculate_orientation(tensor):
 def sobel(image):
     return cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3), cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
 
-def coh_ang_calc(image, gradient_calc=sobel, sigma_inner=1, epsilon=1e-6, kernel_radius=2):
+def coh_ang_calc(image, gradient_calc=sobel, sigma_inner=2, epsilon=1e-6, kernel_radius=3):
     # image: 2d grayscale image, perchance already mean downscaled a bit
     # sigma_outer: sigma for gradient detection
     # sigma_inner: sigma controlling bandwidth of angles detected
@@ -114,16 +114,13 @@ def coh_ang_calc(image, gradient_calc=sobel, sigma_inner=1, epsilon=1e-6, kernel
     k_20_im = gaussian(k_20_im, sigma=sigma_inner, truncate=kernel_radius/sigma_inner)
     k_11 = gaussian(k_11, sigma=sigma_inner, truncate=kernel_radius/sigma_inner)
 
-    coherence = np.sqrt(k_20_re ** 2 + k_20_im ** 2) / (k_11 + epsilon)
-    orientation = np.arctan2(k_20_im, k_20_re)
-
-    return coherence, orientation
+    return (k_20_re ** 2 + k_20_im ** 2) / (k_11 + epsilon) ** 2, np.arctan2(k_20_im, k_20_re) # coherence (|k_20|/k_11), orientation (angle of k_20)
 
 def orient_hsv(image, coherence_image, angle_img, mode="all"):
 
     hsv_image = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.float32)
-    
-    hue_img = (angle_img % (np.pi * 2)) / (np.pi * 2)
+    # print(np.max(angle_img), np.median(angle_img), np.min(angle_img))
+    hue_img = (angle_img + np.pi) / (np.pi * 2)
 
     if mode == 'all':
         hsv_image[:, :, 0] = hue_img  # Hue: Orientation
@@ -134,10 +131,10 @@ def orient_hsv(image, coherence_image, angle_img, mode="all"):
         hsv_image[:, :, 0] = 0
         hsv_image[:, :, 1] = 0
         hsv_image[:, :, 2] = coherence_image # * np.mean(normalized_image[chunk_y, chunk_x])
-        
+
     elif mode == 'angle':
         hsv_image[:, :, 0] = hue_img  # Hue: Orientation
-        hsv_image[:, :, 1] = 1
+        hsv_image[:, :, 1] = coherence_image
         hsv_image[:, :, 2] = 1
     else:
         assert False, "Invalid mode"
