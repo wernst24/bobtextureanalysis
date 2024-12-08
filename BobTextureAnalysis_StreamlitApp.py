@@ -10,6 +10,9 @@ from io import BytesIO
 
 import sys
 
+import pandas as pd
+
+
 sys.dont_write_bytecode = True
 
 sys.tracebacklimit = 0
@@ -26,7 +29,7 @@ from modules import *
 
 
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     with st.form(key='form1', clear_on_submit=False):
@@ -84,12 +87,36 @@ with col2:
             raw_image_gray = 1 - raw_image_gray
         
         coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma, gradient_mode='sobel')
+        if "coh_ang" not in st.session_state:
+            st.session_state.coh_ang = None
+        st.session_state.coh_ang = (coherence, two_phi)
 
         all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all')
         coh_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='coherence')
         ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle')
 
 
-        st.image([raw_image_gray, all_img, coh_img, ang_img])
+        st.image([raw_image_gray, all_img, coh_img, ang_img], caption=["raw grayscale image", "Coherence, angle, image: angle is hue, coherence is saturation, brightness is original image", "Coherence only", "Angle and coherence"])
     else:
         st.write("No image uploaded yet")
+
+with col3:
+    with open("test_semicircles.png", "rb") as f:
+        semicircle_read = f.read()
+    semicircle_bytes = np.asarray(bytearray(semicircle_read), dtype=np.uint8)
+    semicircle_image = color.rgb2gray(cv.imdecode(semicircle_bytes, 1))
+    semi_coh, semi_ang = coh_ang_calc(semicircle_image, sigma_inner=st.session_state.inner_sigma, gradient_mode='sobel')
+    st.image(orient_hsv(semicircle_image, semi_coh, semi_ang, mode='all'), caption="Angles from -pi/2 to pi/2")
+
+    if "coh_ang" not in st.session_state:
+            st.session_state.coh_ang = None
+    
+    if st.session_state.coh_ang:
+        coherence, angles = st.session_state.coh_ang
+        st.write("Warning: very, very, very messy csv format. Only for the brave")
+        with BytesIO() as buffer1:
+            np.savetxt(buffer1, coherence, delimiter=",")
+            st.download_button("Coherence image as csv", buffer1, file_name="coherence_image", mime="text/csv")
+        with BytesIO() as buffer2:
+            np.savetxt(buffer2, angles, delimiter=",")
+            st.download_button("Angle image as csv", buffer2, file_name="angle_image", mime="text/csv")
