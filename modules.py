@@ -75,6 +75,11 @@ def orient_hsv(image, coherence_image, angle_img, mode="all"):
         hsv_image[:, :, 0] = hue_img  # Hue: Orientation
         hsv_image[:, :, 1] = coherence_image
         hsv_image[:, :, 2] = 1
+
+    elif mode == 'angle_bw':
+        hsv_image[:, :, 0] = 0
+        hsv_image[:, :, 1] = 0
+        hsv_image[:, :, 2] = (angle_img + np.pi) / (2 * np.pi)
     else:
         assert False, "Invalid mode"
 

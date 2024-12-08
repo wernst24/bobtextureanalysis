@@ -94,9 +94,9 @@ with col2:
         all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all')
         coh_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='coherence')
         ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle')
+        ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw")
 
-
-        st.image([raw_image_gray, all_img, coh_img, ang_img], caption=["raw grayscale image", "Coherence, angle, image: angle is hue, coherence is saturation, brightness is original image", "Coherence only", "Angle and coherence"])
+        st.image([raw_image_gray, all_img, coh_img, ang_img, ang_img_bw], caption=["raw grayscale image", "Coherence, angle, image: angle is hue, coherence is saturation, brightness is original image", "Coherence only", "Angle and coherence", "Angle only, grayscale"])
     else:
         st.write("No image uploaded yet")
 
