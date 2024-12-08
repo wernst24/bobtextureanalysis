@@ -48,6 +48,8 @@ with col1:
         invert = st.checkbox(label="Invert image?")
 
         inner_sigma = st.slider(min_value=1, max_value=20, step=1, label="Local sigma", help="Smaller values will emphasize higher frequecy detail, while larger values will focus on larger detail. Find what looks cool!")
+        
+        
         # Adding user input to st.session_state
 
         # Image
@@ -67,7 +69,9 @@ with col1:
             st.session_state.invert_image = None
         
         
+        
         st.session_state.invert_image = invert
+
 
         st.form_submit_button(label="Analyze image")
 
@@ -91,22 +95,29 @@ with col2:
             st.session_state.coh_ang = None
         st.session_state.coh_ang = (coherence, two_phi)
 
-        all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all')
+        all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all', angle_phase=st.session_state.angle_phase_shift)
         coh_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='coherence')
-        ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle')
-        ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw")
+        ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle', angle_phase=st.session_state.angle_phase_shift)
+        ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw", angle_phase=st.session_state.angle_phase_shift)
 
         st.image([raw_image_gray, all_img, coh_img, ang_img, ang_img_bw], caption=["raw grayscale image", "Coherence, angle, image: angle is hue, coherence is saturation, brightness is original image", "Coherence only", "Angle and coherence", "Angle only, grayscale"])
     else:
         st.write("No image uploaded yet")
 
 with col3:
+    phase = st.slider("Angle phase shift (degrees)", min_value=0, max_value=360, step=1)
+
+    if "angle_phase_shift" not in st.session_state:
+            st.session_state.angle_phase_shift = None
+
+    st.session_state.angle_phase_shift = phase
+
     with open("test_semicircles.png", "rb") as f:
         semicircle_read = f.read()
     semicircle_bytes = np.asarray(bytearray(semicircle_read), dtype=np.uint8)
     semicircle_image = color.rgb2gray(cv.imdecode(semicircle_bytes, 1))
     semi_coh, semi_ang = coh_ang_calc(semicircle_image, sigma_inner=st.session_state.inner_sigma, gradient_mode='sobel')
-    st.image(orient_hsv(semicircle_image, semi_coh, semi_ang, mode='all'), caption="Angles from -pi/2 to pi/2")
+    st.image(orient_hsv(semicircle_image, semi_coh, semi_ang, mode='all', angle_phase=st.session_state.angle_phase_shift), caption="Angles from -pi/2 to pi/2")
 
     if "coh_ang" not in st.session_state:
             st.session_state.coh_ang = None

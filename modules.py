@@ -55,10 +55,13 @@ def coh_ang_calc(image, gradient_mode='sobel', sigma_inner=2, epsilon=1e-6, kern
 
 # get rbg of image, coherence, and angle
 @st.cache_data
-def orient_hsv(image, coherence_image, angle_img, mode="all"):
+def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0):
 
     hsv_image = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.float32)
-    hue_img = (angle_img + np.pi) / (np.pi * 3) # i dont know why this uses 3pi but it looks good
+    # intial hue calculation - [0, 1)
+    hue_img_pre = (angle_img + np.pi) / (np.pi * 3) # i dont know why this uses 3pi but it looks good
+
+    hue_img = (hue_img_pre + angle_phase/540.0) % .667
     # print(np.max(hue_img), np.median(hue_img), np.min(hue_img))
 
     if mode == 'all':
