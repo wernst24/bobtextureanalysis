@@ -124,7 +124,7 @@ with col3:
     
     if st.session_state.coh_ang:
         coherence, angles = st.session_state.coh_ang
-        st.write("Warning: very, very, very messy csv format. Only for the brave")
+        st.write("Warning: very, very, very messy csv format")
         with BytesIO() as buffer1:
             np.savetxt(buffer1, coherence, delimiter=",")
             st.download_button("Coherence image as csv", buffer1, file_name="coherence_image", mime="text/csv")
