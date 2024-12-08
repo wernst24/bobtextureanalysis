@@ -83,7 +83,7 @@ with col2:
         if st.session_state.invert_image:
             raw_image_gray = 1 - raw_image_gray
         
-        coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma, gradient_calc=sobel)
+        coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma, gradient_mode='sobel')
 
         all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all')
         coh_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='coherence')
