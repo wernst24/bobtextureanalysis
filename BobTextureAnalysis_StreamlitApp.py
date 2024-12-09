@@ -112,12 +112,12 @@ with col3:
 
     st.session_state.angle_phase_shift = phase
 
-    with open("test_semicircles.png", "rb") as f:
-        semicircle_read = f.read()
-    semicircle_bytes = np.asarray(bytearray(semicircle_read), dtype=np.uint8)
-    semicircle_image = color.rgb2gray(cv.imdecode(semicircle_bytes, 1))
-    semi_coh, semi_ang = coh_ang_calc(semicircle_image, sigma_inner=st.session_state.inner_sigma, gradient_mode='sobel')
-    st.image(orient_hsv(semicircle_image, semi_coh, semi_ang, mode='all', angle_phase=st.session_state.angle_phase_shift), caption="Angles from -pi/2 to pi/2")
+    # with open("test_semicircles.png", "rb") as f:
+    #     semicircle_read = f.read()
+    # semicircle_bytes = np.asarray(bytearray(semicircle_read), dtype=np.uint8)
+    # semicircle_image = color.rgb2gray(cv.imdecode(semicircle_bytes, 1))
+    # semi_coh, semi_ang = coh_ang_calc(semicircle_image, sigma_inner=st.session_state.inner_sigma, gradient_mode='sobel')
+    # st.image(orient_hsv(semicircle_image, semi_coh, semi_ang, mode='all', angle_phase=st.session_state.angle_phase_shift), caption="Angles from -pi/2 to pi/2")
 
     if "coh_ang" not in st.session_state:
             st.session_state.coh_ang = None
