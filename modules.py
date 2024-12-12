@@ -56,6 +56,7 @@ def coh_ang_calc(image, gradient_mode='sobel', sigma_inner=2, epsilon=1e-3, kern
 
 
 # get rbg of image, coherence, and angle
+@st.cache_data
 def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0):
     angle_img  = (angle_img - angle_phase*np.pi/90.0) % (np.pi * 2)
 

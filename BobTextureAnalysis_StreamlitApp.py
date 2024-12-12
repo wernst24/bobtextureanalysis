@@ -52,7 +52,8 @@ with col1:
     col1a, col1b = st.columns(2)
     with col1a:
         st.write("Input image (grayscale)")
-        st.image(st.session_state.opencv_image, use_container_width=True)
+        if st.session_state.opencv_image is not None:
+            st.image(st.session_state.opencv_image, use_container_width=True)
     
     with col1b:
         st.write("Processing options")
@@ -95,15 +96,15 @@ with col2:
         ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle', angle_phase=st.session_state.angle_phase_shift)
         ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw", angle_phase=st.session_state.angle_phase_shift)
     
-    if imageToDisplay == "Intensity, Coherence, and Angle":
-        image_to_show = all_img
-    elif imageToDisplay == "Coherence and Angle only":
-        image_to_show = ang_img
-    elif imageToDisplay == "Coherence only":
-        image_to_show = coh_img
-    elif imageToDisplay == "Angle only (black & white)":
-        image_to_show = ang_img_bw
+    if st.session_state.opencv_image is not None:
+        if imageToDisplay == "Intensity, Coherence, and Angle":
+            image_to_show = all_img
+        elif imageToDisplay == "Coherence and Angle only":
+            image_to_show = ang_img
+        elif imageToDisplay == "Coherence only":
+            image_to_show = coh_img
+        else:
+            image_to_show = ang_img_bw
+        st.image(image_to_show, use_container_width=True)
     else:
-        image_to_show = 0
-    
-    st.image(image_to_show, use_container_width=True)
+        st.write("No image uploaded yet - click \"Analyze\"?")
