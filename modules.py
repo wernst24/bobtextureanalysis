@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 import streamlit as st
 
 def sobel(image):
-    return cv.Sobel(image, cv.CV_64F, 1, 0, ksize=3), cv.Sobel(image, cv.CV_64F, 0, 1, ksize=3)
+    return cv.Sobel(image, cv.CV_64F, 1, 0, ksize=5), cv.Sobel(image, cv.CV_64F, 0, 1, ksize=5)
 
 def scharr(image):
     return cv.Scharr(image, cv.CV_64F, 1, 0), cv.Scharr(image, cv.CV_64F, 0, 1)
