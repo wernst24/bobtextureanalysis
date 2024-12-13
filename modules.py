@@ -16,7 +16,7 @@ def scharr(image):
     return cv.Scharr(image, cv.CV_64F, 1, 0), cv.Scharr(image, cv.CV_64F, 0, 1)
 
 @st.cache_data
-def structure_tensor_calc(image, mode):
+def structure_tensor_calc(image, mode='sobel'):
     if mode == 'sobel':
         gradient_calc = sobel
     elif mode == 'scharr':
@@ -64,8 +64,6 @@ def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0):
     # intial hue calculation - [0, 1)
     hue_img = (angle_img) / (np.pi * 3) # i dont know why this uses 3pi but it looks good
 
-    # print(np.max(hue_img), np.median(hue_img), np.min(hue_img))
-
     if mode == 'all':
         hsv_image[:, :, 0] = hue_img  # Hue: Orientation
         hsv_image[:, :, 1] = coherence_image # Saturation: Coherence
@@ -84,7 +82,7 @@ def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0):
     elif mode == 'angle_bw':
         hsv_image[:, :, 0] = 0
         hsv_image[:, :, 1] = 0
-        hsv_image[:, :, 2] = (angle_img + np.pi) / (2 * np.pi)
+        hsv_image[:, :, 2] = (angle_img) / (2 * np.pi)
     else:
         assert False, "Invalid mode"
 
