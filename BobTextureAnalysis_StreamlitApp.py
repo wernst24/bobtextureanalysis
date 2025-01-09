@@ -22,71 +22,73 @@ col1, col2 = st.columns(2)
 with col1:
     # title for form
     st.markdown("# BobTextureAnalysis")
+
+    # Everything in this block will wait until submitted - it should contain uploading the images and infrequently changed parameters - initial downscale, invert, etc.
     with st.form("form1", enter_to_submit=False, clear_on_submit=False):
         msg = "Upload a 2D image to be analyzed. Downsizing is reccomended for larger images"
 
-        uploaded_file = st.file_uploader(msg, type=["tif", "tiff", "png", "jpg", "jpeg"], accept_multiple_files=False)
 
+        uploaded_image = st.file_uploader(msg, type=["tif", "tiff", "png", "jpg", "jpeg"], accept_multiple_files=False)
+
+        # TODO: take this out of the form, because inverting the images doesn't (shouldn't) change the coherence or angle calculation, but changing
+        # if inverted forces recalculation
+        # Change to parameter for orient_hsv?
         invert = st.checkbox(label="Invert image?", value=False)
 
-        rescale_factor = st.number_input("Downscale percentage (1 for no downscale - 0.01 for 100x smaller)", min_value=0.01, max_value=1.0, step=0.01, value=1.0)
+        # No idea what label will make sense for this
+        rescale_factor = st.number_input("Downscale factor (1 for no downscale - 0.01 for 100x smaller)", min_value=0.01, max_value=1.0, step=0.01, value=1.0)
 
         # Image
         if "opencv_image" not in st.session_state:
-            st.session_state.opencv_image = None
+            st.session_state.raw_image_gray = None
 
-        if uploaded_file is not None:
-            file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-            cv_image = cv.imdecode(file_bytes, 1)
-            cv_image_gray = color.rgb2gray(cv_image)
-            # cv_image_gray = cv_image
+        # Reading image if it has been uploaded
+        if uploaded_image is not None:
+            image_bytes = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
+            cv_image = cv.imdecode(image_bytes, 1)
+            cv_image_gray = color.rgb2gray(cv_image) # Convert to grayscale
+
+            # Remove after invert is moved
             if invert:
                 cv_image_gray = 1 - cv_image_gray
+            
+            # rescale with skimage
             cv_image_rescaled = rescale(cv_image_gray, rescale_factor, anti_aliasing=True)
 
-            st.session_state.opencv_image = cv_image_rescaled
+            st.session_state.raw_image_gray = cv_image_rescaled
         
         submit_button = st.form_submit_button("Analyze image")
     
-
-    col1a, col1b = st.columns(2)
+    col1a, col1b = st.columns(2) # col1a is for displaying image, 1b is for parameters
     with col1a:
         st.write("Input image (grayscale)")
-        if st.session_state.opencv_image is not None:
-            st.image(st.session_state.opencv_image, use_container_width=True)
+        if st.session_state.raw_image_gray is not None:
+            st.image(st.session_state.raw_image_gray, use_container_width=True)
     
     with col1b:
         st.write("Processing options")
+
+        # These don't need checking for NaN, because they have default values
         st.session_state.inner_sigma = st.number_input(value=1, min_value=1, max_value=100, step=1, label="sigma value (1 to 100 pixels)",
         help="Smaller values will emphasize higher frequecy detail, while larger values will focus on larger detail. Find what looks cool!")
-        # if "inner_sigma" not in st.session_state:
-        #     st.session_state.inner_sigma = None
-
-        # if inner_sigma: 
-        #      = inner_sigma
 
         st.session_state.angle_phase_shift = st.number_input("Angle phase shift (0 to 180 degrees)", min_value=0, max_value=180, step=1)
 
-        # if "angle_phase_shift" not in st.session_state:
-        #         st.session_state.angle_phase_shift = None
-
-        
-
         st.session_state.epsilon = st.number_input(min_value=1e-8, max_value=1.0, value=1e-8, label="epsilon (increasing can reduce coherence instability for near-constant reigons)")
-        # if "epsilon" not in st.session_state:
-        #     st.session_state.epsilon = None
-        #  = epsilon
 
 # col2 should be for visualizing processed images, and should have everything update live.
-# Add dropdown menu for which layers to view: intensity, angle, and coherence
+# Add dropdown menu for which layers to view: intensity, angle, and coherence - done
 with col2:
-
+    # Selection for which image to view
     imageToDisplay = st.selectbox("Image to display:", ("Intensity, Coherence, and Angle", "Coherence and Angle only", "Coherence only", "Angle only (black & white)"))
-    if st.session_state.opencv_image is not None:
-        raw_image_gray = st.session_state.opencv_image
+    if st.session_state.raw_image_gray is not None:
+        raw_image_gray = st.session_state.raw_image_gray
 
+        # calculate coherence and angle at a given sigma inner scale
         coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma, epsilon=st.session_state.epsilon)
-        two_phi *= -1
+        two_phi *= -1 # flip direction of increasing angles to CCW
+        
+        # This feels inefficient
         if "coh_ang" not in st.session_state:
             st.session_state.coh_ang = None
         st.session_state.coh_ang = (coherence, two_phi)
@@ -96,7 +98,8 @@ with col2:
         ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle', angle_phase=st.session_state.angle_phase_shift)
         ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw", angle_phase=st.session_state.angle_phase_shift)
     
-    if st.session_state.opencv_image is not None:
+    # Display image based on user selection
+    if st.session_state.raw_image_gray is not None:
         if imageToDisplay == "Intensity, Coherence, and Angle":
             image_to_show = all_img
         elif imageToDisplay == "Coherence and Angle only":
