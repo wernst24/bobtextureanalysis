@@ -85,7 +85,7 @@ with col2:
     if st.session_state.opencv_image is not None:
         raw_image_gray = st.session_state.opencv_image
 
-        coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma, gradient_mode='sobel', epsilon=st.session_state.epsilon)
+        coherence, two_phi = coh_ang_calc(raw_image_gray, sigma_inner=st.session_state.inner_sigma, epsilon=st.session_state.epsilon)
         two_phi *= -1
         if "coh_ang" not in st.session_state:
             st.session_state.coh_ang = None

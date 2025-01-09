@@ -12,18 +12,9 @@ import streamlit as st
 def sobel(image):
     return cv.Sobel(image, cv.CV_64F, 1, 0, ksize=5), cv.Sobel(image, cv.CV_64F, 0, 1, ksize=5)
 
-def scharr(image):
-    return cv.Scharr(image, cv.CV_64F, 1, 0), cv.Scharr(image, cv.CV_64F, 0, 1)
-
 @st.cache_data
-def structure_tensor_calc(image, mode='sobel'):
-    if mode == 'sobel':
-        gradient_calc = sobel
-    elif mode == 'scharr':
-        gradient_calc = scharr
-    else:
-        assert False, "invalid mode"
-    I_x, I_y = gradient_calc(image)
+def structure_tensor_calc(image):
+    I_x, I_y = sobel(image)
 
     # structure tensor
     mu_20 = I_x ** 2
@@ -32,20 +23,19 @@ def structure_tensor_calc(image, mode='sobel'):
     # k_20_real, k_20_im, k_11
     return mu_20 - mu_02, 2 * I_x * I_y, mu_20 + mu_02
 
-@st.cache_data
 def kval_gaussian(k_20_re, k_20_im, k_11, sigma):
     max_std = 3.0 # cut off gaussian after 3 standard deviations
     return gaussian(k_20_re, sigma=sigma, truncate=max_std), gaussian(k_20_im, sigma=sigma, truncate=max_std), gaussian(k_11, sigma=sigma, truncate=max_std)
 
 @st.cache_data
-def coh_ang_calc(image, gradient_mode='sobel', sigma_inner=2, epsilon=1e-3, kernel_radius=3):
+def coh_ang_calc(image, sigma_inner=2, epsilon=1e-3, kernel_radius=3):
     # image: 2d grayscale image, perchance already mean downscaled a bit
     # sigma_outer: sigma for gradient detection
     # sigma_inner: sigma controlling bandwidth of angles detected
     # epsilon: prevent div0 error for coherence
     # kernel_radius: kernel size for gaussians - kernel will be 2*kernel_radius + 1 wide
 
-    k_20_re, k_20_im, k_11 = structure_tensor_calc(image, gradient_mode)
+    k_20_re, k_20_im, k_11 = structure_tensor_calc(image)
 
     # this is sampling local area with w(p)
     k_20_re, k_20_im, k_11 = kval_gaussian(k_20_re, k_20_im, k_11, sigma_inner)
@@ -87,6 +77,3 @@ def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0):
         assert False, "Invalid mode"
 
     return cv.cvtColor((hsv_image * 255).astype(np.uint8), cv.COLOR_HSV2RGB)
-
-def recalculate():
-    pass
