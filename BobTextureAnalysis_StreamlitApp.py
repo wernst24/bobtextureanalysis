@@ -23,7 +23,7 @@ with col1:
     # title for form
     st.markdown("# BobTextureAnalysis")
 
-    # Everything in this block will wait until submitted - it should contain uploading the images and infrequently changed parameters - initial downscale, invert, etc.
+    # Everything in this block will wait until submitted - it should contain uploading the images and infrequently changed parameters - initial downscale, etc.
     with st.form("form1", enter_to_submit=False, clear_on_submit=False):
         msg = "Upload a 2D image to be analyzed. Downsizing is reccomended for larger images"
 
@@ -33,7 +33,6 @@ with col1:
         # TODO: take this out of the form, because inverting the images doesn't (shouldn't) change the coherence or angle calculation, but changing
         # if inverted forces recalculation
         # Change to parameter for orient_hsv?
-        invert = st.checkbox(label="Invert image?", value=False)
 
         # No idea what label will make sense for this
         rescale_factor = st.number_input("Downscale factor (1 for no downscale - 0.01 for 100x smaller)", min_value=0.01, max_value=1.0, step=0.01, value=1.0)
@@ -47,10 +46,6 @@ with col1:
             image_bytes = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
             cv_image = cv.imdecode(image_bytes, 1)
             cv_image_gray = color.rgb2gray(cv_image) # Convert to grayscale
-
-            # Remove after invert is moved
-            if invert:
-                cv_image_gray = 1 - cv_image_gray
             
             # rescale with skimage
             cv_image_rescaled = rescale(cv_image_gray, rescale_factor, anti_aliasing=True)
@@ -76,6 +71,7 @@ with col1:
 
         st.session_state.epsilon = st.number_input(min_value=1e-8, max_value=1.0, value=1e-8, label="epsilon (increasing can reduce coherence instability for near-constant reigons)")
 
+        st.session_state.invert = st.checkbox(label="Invert image?", value=False)
 # col2 should be for visualizing processed images, and should have everything update live.
 # Add dropdown menu for which layers to view: intensity, angle, and coherence - done
 with col2:
@@ -93,7 +89,7 @@ with col2:
             st.session_state.coh_ang = None
         st.session_state.coh_ang = (coherence, two_phi)
 
-        all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all', angle_phase=st.session_state.angle_phase_shift)
+        all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all', angle_phase=st.session_state.angle_phase_shift, invert = st.session_state.invert)
         coh_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='coherence')
         ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle', angle_phase=st.session_state.angle_phase_shift)
         ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw", angle_phase=st.session_state.angle_phase_shift)
