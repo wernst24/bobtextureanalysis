@@ -4,8 +4,6 @@ import numpy as np
 from skimage import color
 from skimage.filters import gaussian
 from skimage.transform import rescale
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
 import streamlit as st
 # from io import BytesIO
 
