@@ -45,7 +45,7 @@ def coh_ang_calc(image, sigma_inner=2, epsilon=1e-3, kernel_radius=3):
 
 # get rbg of image, coherence, and angle
 @st.cache_data
-def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0, invert=False):
+def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0, invert=False, night_mode=False):
     angle_img  = (angle_img - angle_phase*np.pi/90.0) % (np.pi * 2)
 
     hsv_image = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.float32)
@@ -65,7 +65,7 @@ def orient_hsv(image, coherence_image, angle_img, mode="all", angle_phase=0, inv
     elif mode == 'angle':
         hsv_image[:, :, 0] = hue_img  # Hue: Orientation
         hsv_image[:, :, 1] = coherence_image
-        hsv_image[:, :, 2] = 1
+        hsv_image[:, :, 2] = coherence_image if night_mode else 1
 
     elif mode == 'angle_bw':
         hsv_image[:, :, 0] = 0

@@ -72,6 +72,8 @@ with col1:
         st.session_state.epsilon = st.number_input(min_value=1e-8, max_value=1.0, value=1e-8, label="epsilon (increasing can reduce coherence instability for near-constant reigons)")
 
         st.session_state.invert = st.checkbox(label="Invert image?", value=False)
+
+        st.session_state.coh_ang_dark = st.checkbox(label="Dark mode for coh&ang ", value=False)
 # col2 should be for visualizing processed images, and should have everything update live.
 # Add dropdown menu for which layers to view: intensity, angle, and coherence - done
 with col2:
@@ -91,7 +93,7 @@ with col2:
 
         all_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='all', angle_phase=st.session_state.angle_phase_shift, invert = st.session_state.invert)
         coh_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='coherence')
-        ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle', angle_phase=st.session_state.angle_phase_shift)
+        ang_img = orient_hsv(raw_image_gray, coherence, two_phi, mode='angle', angle_phase=st.session_state.angle_phase_shift, night_mode=st.session_state.coh_ang_dark)
         ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw", angle_phase=st.session_state.angle_phase_shift)
     
     # Display image based on user selection
