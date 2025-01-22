@@ -97,7 +97,6 @@ with col2:
         ang_img_bw = orient_hsv(raw_image_gray, coherence, two_phi, mode="angle_bw", angle_phase=st.session_state.angle_phase_shift)
     
     # Display image based on user selection
-    if st.session_state.raw_image_gray is not None:
         if imageToDisplay == "Intensity, Coherence, and Angle":
             image_to_show = all_img
         elif imageToDisplay == "Coherence and Angle only":
@@ -107,5 +106,29 @@ with col2:
         else:
             image_to_show = ang_img_bw
         st.image(image_to_show, use_container_width=True)
+
+        col2a, col2b = st.columns(2)
+        with col2a:
+            k = st.number_input("choose k for (k by k) block reduce", min_value=1, max_value=100, value=1, step=1)
+            (h, w) = raw_image_gray.shape
+            raw_image_gray_small = raw_image_gray[:h//k * k, :w//k * k].reshape(h//k, k, w//k, k).mean(axis=(1, 3))
+            coherence_small, two_phi_small = downscale_coh_ang(coherence, two_phi, k)
+            all_img_small = orient_hsv(raw_image_gray_small, coherence_small, two_phi_small, mode='all', angle_phase=st.session_state.angle_phase_shift, invert = st.session_state.invert)
+            coh_img_small = orient_hsv(raw_image_gray_small, coherence_small, two_phi_small, mode='coherence')
+            ang_img_small = orient_hsv(raw_image_gray_small, coherence_small, two_phi_small, mode='angle', angle_phase=st.session_state.angle_phase_shift, night_mode=st.session_state.coh_ang_dark)
+            ang_img_bw_small = orient_hsv(raw_image_gray_small, coherence_small, two_phi_small, mode="angle_bw", angle_phase=st.session_state.angle_phase_shift)
+        with col2b:
+            if imageToDisplay == "Intensity, Coherence, and Angle":
+                image_to_show2 = all_img_small
+            elif imageToDisplay == "Coherence and Angle only":
+                image_to_show2 = ang_img_small
+            elif imageToDisplay == "Coherence only":
+                image_to_show2 = coh_img_small
+            else:
+                image_to_show2 = ang_img_bw_small
+            st.image(image_to_show2, use_container_width=False)
     else:
         st.write("No image uploaded yet - click \"Analyze\"?")
+    
+    
+    
